@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  email     String
+  phone     String
+  address   String
+  invoices  Invoice[]
+}
+
+model Receiver {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  ci        Int       @unique
+  email     String
+  phone     String
+  address   String
+  invoices  Invoice[]
+}
+
+model Invoice {
+  id         Int       @id @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  invoice    String    @unique
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  customerId Int
+  receiver   Receiver  @relation(fields: [receiverId], references: [id])
+  receiverId Int
+  packages   Package[]
+}
+
+model Package {
+  id          Int    @id @default(autoincrement())
+  hbl         String @unique
+  weight      Float
+  price       Float
+  description String
+
+  type        String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime?  @updatedAt()
+  container   Container? @relation(fields: [containerId], references: [id])
+  containerId Int?
+  invoice     Invoice?   @relation(fields: [invoiceId], references: [id])
+  invoiceId   Int?
+}
+
+model Tracking {
+  id                   Int       @id @default(autoincrement())
+  hbl                  String    @unique
+  status               String ?
+  oldInvoiceId         Int?
+  containerId          Int?
+  invoiceDate          DateTime?
+  containerDate        DateTime?
+  portDate             DateTime?
+  customsDate          DateTime?
+  pendingTransfertDate DateTime?
+  transfertDate        DateTime?
+  deliveredDate        DateTime?
+
+}
+
+model TrackingStatus {
+  id       Int        @id @default(autoincrement())
+  name     String
+ 
+}
+
+model Container {
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  closetAt        DateTime
+  openedAt        DateTime
+  arrivedAt       DateTime
+  containerNumber String    @unique
+  packages        Package[]
+}
