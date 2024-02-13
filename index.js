@@ -8,7 +8,9 @@ dotenv.config();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use("/", (req, res) => {
+	res.send("Welcome to the API");
+});
 app.use("/api/genres", genres);
 app.use("/api/excel", excel);
 app.use("/api/tracking", require("./routes/tracking"));
