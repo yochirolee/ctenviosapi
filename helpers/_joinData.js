@@ -1,6 +1,3 @@
-const { valid } = require("joi");
-const validateDate = require("./_validateDate.js");
-
 const joinData = (mySqlData, excelData) => {
 	try {
 		if (!mySqlData || !excelData) return;

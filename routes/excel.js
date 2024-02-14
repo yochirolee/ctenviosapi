@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../lib/_uploadExcel");
 const readExcelData = require("../lib/_readExcel");
-const myslq_service = require("../services/mysql/mysql_service");
-const joinData = require("../helpers/joinData");
+const myslqService = require("../services/mysql/mysqlService");
+const joinData = require("../helpers/_joinData");
 
 router.post("/", upload, async (req, res) => {
 	try {
@@ -34,14 +34,14 @@ router.post("/", upload, async (req, res) => {
 				const uniqueInvoices = [...new Set(sheetData?.map((item) => item?.invoiceId))];
 				const invoicesId = uniqueInvoices?.filter((item) => Number(item));
 
-				let existingInvoices = await myslq_service.findInvoices(invoicesId);
-				console.log(existingInvoices, "invoicesId");
+				let existingInvoices = await myslqService.invoices.findInvoices(invoicesId);
 
 				const result = joinData(existingInvoices, sheetData);
 
 				finalResult.push({
 					sheet: sheet,
-					count: result?.length,
+					invoicesCount: invoicesId?.length,
+					hblCount: result?.length,
 					result: result,
 				});
 			}),

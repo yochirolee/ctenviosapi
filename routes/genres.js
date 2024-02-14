@@ -19,7 +19,7 @@ router.post("/", (req, res) => {
 	const genre = {
 		id: genres.length + 1,
 		name: req.body.name,
-    date: req.body.created_at, 
+		date: req.body.created_at,
 	};
 	genres.push(genre);
 	res.send(genre);
