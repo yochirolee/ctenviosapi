@@ -1,8 +1,11 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const config = {
-	host: "systemcaribetravel.com",
-	user: "u373067935_caeenvio_mysgc",
-	password: "CaribeAgencia*2022",
-	database: "u373067935_cte",
+	host: process.env.MYSQL_HOST,
+	user: process.env.MYSQL_USER,
+	password: process.env.MYSQL_PASSWORD,
+	database: process.env.MYSQL_DATABASE,
 	connectionLimit: 10,
 	dateStrings: true,
 	multipleStatements: true,

@@ -48,10 +48,11 @@ const mysqlService = {
 			try {
 				const customer = {};
 				const [result] = await query("select * from clientes where codigo=?", [customerId]);
-				customer.name = result.nombre + " " + result.nombre2;
-				customer.lastName = result.apellido + " " + result.apellido2;
-				customer.mobile = result.cel;
-				customer.phone = result.tel;
+				if (result?.length === 0) return [];
+				customer.name = result?.nombre + " " + result?.nombre2;
+				customer.lastName = result?.apellido + " " + result?.apellido2;
+				customer.mobile = result?.cel;
+				customer.phone = result?.tel;
 
 				return customer;
 			} catch (error) {
@@ -63,6 +64,7 @@ const mysqlService = {
 		getRecieverById: async (id) => {
 			try {
 				const [result] = await query("SELECT * FROM destinatarios WHERE codigo=?", [id]);
+				if(result?.length === 0) return [];
 				const [state] = await query("SELECT ciudad as Province FROM ciudades where id=?", [
 					result.estado,
 				]);

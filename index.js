@@ -1,8 +1,6 @@
-const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
-const genres = require("./routes/genres");
-const excel = require("./routes/excel");
+const dotenv = require("dotenv");
 
 const app = express();
 dotenv.config();
@@ -11,8 +9,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/genres", genres);
-app.use("/api/excel", excel);
 app.use("/api/tracking", require("./routes/tracking"));
 app.use("/", (req, res) => {
 	res.send("Welcome to the API");
