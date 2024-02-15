@@ -1,29 +1,3 @@
--- CreateEnum
-CREATE TYPE "PackageStatus" AS ENUM ('FACTURADO', 'EN_ALMACEN', 'EN_PALLET', 'EN_CONTENEDOR', 'EN_PUERTO', 'EN_ADUANA', 'LISTO_PARA_DISTRIBUCION', 'EN_DISTRIBUCION', 'ENTREGADO');
-
--- CreateTable
-CREATE TABLE "User" (
-    "id" SERIAL NOT NULL,
-    "email" TEXT NOT NULL,
-    "name" TEXT,
-
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Post" (
-    "id" SERIAL NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "title" TEXT NOT NULL,
-    "content" TEXT,
-    "published" BOOLEAN NOT NULL DEFAULT false,
-    "viewCount" INTEGER NOT NULL DEFAULT 0,
-    "authorId" INTEGER,
-
-    CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateTable
 CREATE TABLE "Customer" (
     "id" SERIAL NOT NULL,
@@ -70,24 +44,40 @@ CREATE TABLE "Package" (
     "weight" DOUBLE PRECISION NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
     "description" TEXT NOT NULL,
-    "status" "PackageStatus" NOT NULL,
     "type" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "containerId" INTEGER NOT NULL,
-    "invoiceId" INTEGER NOT NULL,
+    "updatedAt" TIMESTAMP(3),
+    "containerId" INTEGER,
+    "invoiceId" INTEGER,
 
     CONSTRAINT "Package_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "PackageStatusHistory" (
+CREATE TABLE "Tracking" (
     "id" SERIAL NOT NULL,
-    "packageId" INTEGER NOT NULL,
-    "status" "PackageStatus" NOT NULL,
-    "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "hbl" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "locationId" INTEGER,
+    "oldInvoiceId" INTEGER,
+    "containerId" INTEGER,
+    "invoiceDate" TIMESTAMP(3),
+    "containerDate" TIMESTAMP(3),
+    "portDate" TIMESTAMP(3),
+    "customsDate" TIMESTAMP(3),
+    "pendingTransfertDate" TIMESTAMP(3),
+    "transfertDate" TIMESTAMP(3),
+    "deliveredDate" TIMESTAMP(3),
 
-    CONSTRAINT "PackageStatusHistory_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Tracking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TrackingLocations" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "TrackingLocations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -98,13 +88,10 @@ CREATE TABLE "Container" (
     "closetAt" TIMESTAMP(3) NOT NULL,
     "openedAt" TIMESTAMP(3) NOT NULL,
     "arrivedAt" TIMESTAMP(3) NOT NULL,
-    "container" TEXT NOT NULL,
+    "containerNumber" TEXT NOT NULL,
 
     CONSTRAINT "Container_pkey" PRIMARY KEY ("id")
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Receiver_ci_key" ON "Receiver"("ci");
@@ -116,10 +103,10 @@ CREATE UNIQUE INDEX "Invoice_invoice_key" ON "Invoice"("invoice");
 CREATE UNIQUE INDEX "Package_hbl_key" ON "Package"("hbl");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Container_container_key" ON "Container"("container");
+CREATE UNIQUE INDEX "Tracking_hbl_key" ON "Tracking"("hbl");
 
--- AddForeignKey
-ALTER TABLE "Post" ADD CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "Container_containerNumber_key" ON "Container"("containerNumber");
 
 -- AddForeignKey
 ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -128,10 +115,10 @@ ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_customerId_fkey" FOREIGN KEY ("cus
 ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "Receiver"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Package" ADD CONSTRAINT "Package_containerId_fkey" FOREIGN KEY ("containerId") REFERENCES "Container"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Package" ADD CONSTRAINT "Package_containerId_fkey" FOREIGN KEY ("containerId") REFERENCES "Container"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Package" ADD CONSTRAINT "Package_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Package" ADD CONSTRAINT "Package_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PackageStatusHistory" ADD CONSTRAINT "PackageStatusHistory_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Tracking" ADD CONSTRAINT "Tracking_locationId_fkey" FOREIGN KEY ("locationId") REFERENCES "TrackingLocations"("id") ON DELETE SET NULL ON UPDATE CASCADE;

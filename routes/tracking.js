@@ -7,6 +7,7 @@ const { formatInvoice } = require("../helpers/_formatInvoice");
 const upload = require("../lib/_uploadExcel");
 const readExcelData = require("../lib/_readExcel");
 const validateExcelData = require("../helpers/_validateExcelData");
+const isDate = require("../helpers/_isDate");
 
 router.get("/", async (req, res) => {
 	let result = await prismaService.tracking.getTracking();
@@ -39,7 +40,7 @@ router.get("/invoice/:invoiceId", async (req, res) => {
 	}
 });
 
-// this route will move to a different file
+// update tracking from Excel File
 router.post("/excel", upload, async (req, res) => {
 	try {
 		if (req.file === undefined) {
@@ -73,6 +74,7 @@ router.post("/excel", upload, async (req, res) => {
 
 				const result = validateExcelData(existingInvoices, sheetData);
 				const { data, error } = await supabaseService.upsertTracking(result);
+				console.log(error)
 				finalResult.push({
 					container: sheet,
 					updated: data?.length ? data.length : null,
@@ -87,6 +89,59 @@ router.post("/excel", upload, async (req, res) => {
 	} catch (err) {
 		console.log(err, "error on reading excel file");
 		return res.status(500).send(err);
+	}
+});
+
+// get tracking by containerId
+router.get("/container/:containerId", async (req, res) => {
+	const tracking = await prismaService.tracking.getTrackingByContainerId(req.params.containerId);
+	if(!tracking) return res.json({message: "No tracking found for this container"});
+	const delivered = tracking.filter((track) => track.status === "Entregado").length;
+	const customs = tracking.filter((track) => track.status === "En Aduana").length;
+	const transfert = tracking.filter((track) => track.status === "En Traslado").length;
+	const trasnferReady = tracking.filter((track) => track.status === "Listo para Traslado").length;
+	const port = tracking.filter((track) => track.status === "Puerto del Mariel").length;
+	res.json({
+		data: tracking,
+		tracking: {
+			total: tracking.length,
+			delivered: delivered,
+			customs: customs,
+			transfer: transfert,
+			transferReady: trasnferReady,
+			port: port,
+		},
+	});
+});
+
+router.post("/containerToPort", async (req, res) => {
+	try {
+		const { containerId, portDate } = req.body;
+		if (!containerId) return res.json({ error: "ContainerId is required" });
+		const container = await mysqlService.container.getPackagesByContainerId(containerId);
+		const dataToUpsert = container.map((item) => {
+			return {
+				hbl: item.HBL,
+				portDate: isDate(portDate) ? portDate : null,
+				containerId: containerId,
+				oldInvoiceId: item.InvoiceId,
+				status: "Puerto del Mariel",
+			};
+		});
+		const { data, error } = await supabaseService.upsertTracking(dataToUpsert);
+		if (error) return res.json({ error });
+		res.json(data);
+	} catch (error) {
+		console.log(error);
+	}
+});
+
+router.get("/containers", async (req, res) => {
+	try {
+		const containers = await mysqlService.container.getContainers();
+		res.status(200).json(containers);
+	} catch (error) {
+		console.log(error);
 	}
 });
 

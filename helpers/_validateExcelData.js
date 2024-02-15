@@ -1,12 +1,5 @@
 //Validate excel data
-const Joi = require("joi");
-
-const isDate = (date) => {
-	const schema = Joi.date().iso();
-	const result = schema.validate(date);
-	return result.error ? null : date;
-};
-
+const isDate = require("./_isDate");
 const validateExcelData = (mySqlData, excelData) => {
 	try {
 		if (!mySqlData || !excelData) return;
@@ -45,6 +38,18 @@ const findInvoices = (invoiceId, excelData) => {
 			: result.customDate
 			? result.customDate
 			: result.pendingTransfertDate,
+		locationId: isDate(result.deliveredDate)
+			? 10 // Entregado
+			: isDate(result.transfertDate)
+			? 9 // En Traslado
+			: isDate(result.pendingTransfertDate)
+			? 8 // Listo para Traslado
+			: isDate(result.customDate)
+			? 6 // En Aduana
+			: isDate(result.portDate)
+			? 5 // en Puerto del Mariel
+			: 0,
+
 	};
 
 	return resultValidated;

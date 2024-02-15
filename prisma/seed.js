@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
@@ -50,13 +50,27 @@ const userData = [
 	},
 ];
 
+const locations = [
+	{ name: "Facturado" },
+	{ name: "Despacho" },
+	{ name: "En Pallet" },
+	{ name: "En Contenedor" },
+	{ name: "En Puerto del Mariel" },
+	{ name: "Aduana" },
+	{ name: "Canal Rojo" },
+	{ name: "Listo para Traslado" },
+	{ name: "En Traslado" },
+	{ name: "Entregado" },
+];
+
 async function main() {
 	console.log(`Start seeding ...`);
-	for (const u of userData) {
-		const user = await prisma.user.create({
-			data: u,
+	
+	for (const l of locations) {
+		const location = await prisma.trackingLocations.create({
+			data: l,
 		});
-		console.log(`Created user with id: ${user.id}`);
+		console.log(`Created location with id: ${location.id}`);
 	}
 	console.log(`Seeding finished.`);
 }
