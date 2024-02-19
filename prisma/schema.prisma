@@ -63,7 +63,7 @@ model Package {
 model Tracking {
   id                   Int                @id @default(autoincrement())
   hbl                  String             @unique
-  status               String
+  status               String?
   location             TrackingLocations? @relation(fields: [locationId], references: [id])
   locationId           Int?
   oldInvoiceId         Int?

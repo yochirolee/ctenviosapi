@@ -48,7 +48,7 @@ const findInvoices = (invoiceId, excelData) => {
 			? 6 // En Aduana
 			: isDate(result.portDate)
 			? 5 // en Puerto del Mariel
-			: 0,
+			: 1,
 
 	};
 

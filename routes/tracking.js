@@ -20,7 +20,7 @@ router.get("/hbl/:hbl", async (req, res) => {
 		const pack = await mysqlService.packages.getPackageByHBL(req.params.hbl);
 
 		const tracking = await prismaService.tracking.getTrackingByHBL(req.params.hbl);
-
+		console.log(tracking, "tracking");
 		const newInvoice = await formatInvoice(pack, tracking);
 		res.json(newInvoice);
 	} catch (error) {
@@ -32,6 +32,7 @@ router.get("/invoice/:invoiceId", async (req, res) => {
 	try {
 		const invoice = await mysqlService.invoices.getInvoiceById(req.params.invoiceId);
 		const tracking = await prismaService.tracking.getTrackingByInvoiceId(req.params.invoiceId);
+		console.log(req.params.invoiceId, tracking, "tracking");
 		const newInvoice = await formatInvoice(invoice, tracking);
 
 		res.json(newInvoice);
@@ -74,7 +75,7 @@ router.post("/excel", upload, async (req, res) => {
 
 				const result = validateExcelData(existingInvoices, sheetData);
 				const { data, error } = await supabaseService.upsertTracking(result);
-				console.log(error)
+
 				finalResult.push({
 					container: sheet,
 					updated: data?.length ? data.length : null,
@@ -95,7 +96,7 @@ router.post("/excel", upload, async (req, res) => {
 // get tracking by containerId
 router.get("/container/:containerId", async (req, res) => {
 	const tracking = await prismaService.tracking.getTrackingByContainerId(req.params.containerId);
-	if(!tracking) return res.json({message: "No tracking found for this container"});
+	if (!tracking) return res.json({ message: "No tracking found for this container" });
 	const delivered = tracking.filter((track) => track.status === "Entregado").length;
 	const customs = tracking.filter((track) => track.status === "En Aduana").length;
 	const transfert = tracking.filter((track) => track.status === "En Traslado").length;
