@@ -9,10 +9,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+/* const isAuthByApiKey = require("./middleware/isAuthByApiKey");
+
+
+app.use(isAuthByApiKey);
+ */
 app.use("/api/tracking", require("./routes/tracking"));
 app.use("/", (req, res) => {
 	res.send("Welcome to the API");
 });
-
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));

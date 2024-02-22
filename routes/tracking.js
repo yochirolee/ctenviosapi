@@ -8,6 +8,8 @@ const upload = require("../lib/_uploadExcel");
 const readExcelData = require("../lib/_readExcel");
 const validateExcelData = require("../helpers/_validateExcelData");
 const isDate = require("../helpers/_isDate");
+const uploadImage = require("../lib/_uploadImage");
+const uploadImageToCloudinary = require("../services/cloudinary/cloudinadyService");
 
 router.get("/", async (req, res) => {
 	let result = await prismaService.tracking.getTracking();
@@ -93,6 +95,20 @@ router.post("/excel", upload, async (req, res) => {
 	}
 });
 
+router.post("/image", uploadImage,async (req, res) => {
+	try {
+		if (req.file === undefined) return res.status(400).send("Please upload an image file");
+		const hbl= req.body.hbl;
+		console.log(hbl, "hbl")
+		console.log(req.file.originalname, "req.file");
+		const url =await uploadImageToCloudinary(req.file,hbl);
+		console.log(url, "url on router"	)
+		res.json(url);
+	} catch (error) {
+		console.log(error);
+	}
+});
+
 // get tracking by containerId
 router.get("/container/:containerId", async (req, res) => {
 	const tracking = await prismaService.tracking.getTrackingByContainerId(req.params.containerId);
@@ -100,8 +116,9 @@ router.get("/container/:containerId", async (req, res) => {
 	const delivered = tracking.filter((track) => track.status === "Entregado").length;
 	const customs = tracking.filter((track) => track.status === "En Aduana").length;
 	const transfert = tracking.filter((track) => track.status === "En Traslado").length;
-	const trasnferReady = tracking.filter((track) => track.status === "Listo para Traslado").length;
-	const port = tracking.filter((track) => track.status === "Puerto del Mariel").length;
+	const transfertReady = tracking.filter((track) => track.status === "Listo para Traslado").length;
+	const port = tracking.filter((track) => track.locationId === 5).length;
+
 	res.json({
 		data: tracking,
 		tracking: {
@@ -109,7 +126,7 @@ router.get("/container/:containerId", async (req, res) => {
 			delivered: delivered,
 			customs: customs,
 			transfer: transfert,
-			transferReady: trasnferReady,
+			transferReady: transfertReady,
 			port: port,
 		},
 	});
@@ -117,18 +134,47 @@ router.get("/container/:containerId", async (req, res) => {
 
 router.post("/containerToPort", async (req, res) => {
 	try {
-		const { containerId, portDate } = req.body;
+		const { containerId, date } = req.body;
+		console.log(containerId, isDate(date), "containerId, portDate");
 		if (!containerId) return res.json({ error: "ContainerId is required" });
+
 		const container = await mysqlService.container.getPackagesByContainerId(containerId);
 		const dataToUpsert = container.map((item) => {
 			return {
 				hbl: item.HBL,
-				portDate: isDate(portDate) ? portDate : null,
+				portDate: date,
 				containerId: containerId,
 				oldInvoiceId: item.InvoiceId,
 				status: "Puerto del Mariel",
+				locationId: 5,
 			};
 		});
+		const { data, error } = await supabaseService.upsertTracking(dataToUpsert);
+		if (error) return res.json({ error });
+		res.json(data);
+	} catch (error) {
+		console.log(error);
+	}
+});
+
+router.post("/containerToCustom", async (req, res) => {
+	try {
+		const { containerId, date } = req.body;
+		console.log(containerId, isDate(date), "containerId, portDate");
+		if (!containerId) return res.json({ error: "ContainerId is required" });
+
+		const container = await mysqlService.container.getPackagesByContainerId(containerId);
+		const dataToUpsert = container.map((item) => {
+			return {
+				hbl: item.HBL,
+				customsDate: date,
+				containerId: containerId,
+				oldInvoiceId: item.InvoiceId,
+				status: "Aduana",
+				locationId: 6,
+			};
+		});
+		console.log(dataToUpsert, "dateToUpsert")
 		const { data, error } = await supabaseService.upsertTracking(dataToUpsert);
 		if (error) return res.json({ error });
 		res.json(data);

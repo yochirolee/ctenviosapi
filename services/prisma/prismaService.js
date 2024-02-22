@@ -1,4 +1,4 @@
-const {PrismaClient}= require("@prisma/client");
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const prismaService = {
@@ -36,6 +36,7 @@ const prismaService = {
 			try {
 				const tracking = await prisma.tracking.findMany({
 					where: { hbl: hbl },
+					
 				});
 				return tracking;
 			} catch (error) {
